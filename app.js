@@ -43,10 +43,12 @@ function walkRouter(rootNode, callback) {
 
     // 如果值是对象或数组，就继续遍历
     if (node && typeof node === 'object') {
-      for (const key in node) {
-        if (node.hasOwnProperty(key)) {
-          stack.push({node: node[key], path: (path ? path + '/' : '') + node[key].path});
+      if (Array.isArray(node)) {
+        for (const key in node) {
+          stack.push({node: node[key], path: (path ? path + '/' : '') + node[key].path})
         }
+      } else if (node.hasOwnProperty("children")) {
+        stack.push({node: node.children, path: path});
       }
     }
 
@@ -78,14 +80,14 @@ function main() {
     return
   }
 
+  console.log(vueRouter)
   walkRouter(vueRouter, function (path, node) {
     if (node.path) {
-      node.path = path
-      routers.push(node)
+      routers.push({name: node.name, path})
     }
   })
 
-  console.table(routers)
+  return routers
 }
 
-main()
+console.table(main())
