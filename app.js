@@ -16,25 +16,42 @@ function findVueRoot(root) {
   return null;
 }
 
-function traverseObject(obj, callback) {
+function findVueRouter(vueRoot) {
+  let router;
+
+  try {
+    if (vueRoot.__vue_app__) {
+      router = vueRoot.__vue_app__.config.globalProperties.$router.options.routes
+    } else {
+      if (vueRoot.__vue__.$root.$options.router.options.routes) {
+        router = vueRoot.__vue__.$root.$options.router.options.routes
+      } else if (vueRoot.__vue__._router.options.routes) {
+        router = vueRoot.__vue__._router.options.routes
+      }
+    }
+  } catch (e) {}
+
+  return router
+}
+
+function walkRouter(rootNode, callback) {
   // 每个条目是一个对象和它的“路径”（例如 'a.b.c'）
-  const stack = [{ value: obj, path: [] }];
+  const stack = [{node: rootNode, path: ''}];
 
   while (stack.length) {
-    const { value, path } = stack.pop();
+    const { node, path} = stack.pop();
 
     // 如果值是对象或数组，就继续遍历
-    if (value && typeof value === 'object') {
-      for (const key in value) {
-        if (value.hasOwnProperty(key)) {
-          const newPath = path.concat(key); // 更新当前路径
-          stack.push({ value: value[key], path: newPath });
+    if (node && typeof node === 'object') {
+      for (const key in node) {
+        if (node.hasOwnProperty(key)) {
+          stack.push({node: node[key], path: (path ? path + '/' : '') + node[key].path});
         }
       }
     }
 
     // 调用回调函数
-    callback(path.join('.'), value);
+    callback(path, node);
   }
 }
 
@@ -54,32 +71,21 @@ function main() {
 
   console.log("Vue version is ", vueVersion)
   const routers = [];
-  let routeRoot;
 
-  try {
-    if (/^2\./.test(vueVersion)) {
-      if (vueRoot.__vue__.$root.$options.router.options.routes) {
-        routeRoot = vueRoot.__vue__.$root.$options.router.options.routes
-      } else if (vueRoot.__vue__._router.options.routes) {
-        routeRoot = vueRoot.__vue__._router.options.routes
-      }
-    } else {
-      routeRoot = vueRoot.__vue_app__.config.globalProperties.$router.options.routes
-    }
-  } catch (e) {}
-
-  if (!routeRoot) {
+  const vueRouter = findVueRouter(vueRoot)
+  if (!vueRouter) {
     console.error("No Vue-Router detected")
     return
   }
 
-  traverseObject(routeRoot, function (path, node) {
-    if (typeof node.path === 'string') {
+  walkRouter(vueRouter, function (path, node) {
+    if (node.path) {
+      node.path = path
       routers.push(node)
     }
   })
 
-  console.log(routers)
+  console.table(routers)
 }
 
 main()
