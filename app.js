@@ -35,13 +35,11 @@ function findVueRouter(vueRoot) {
 }
 
 function walkRouter(rootNode, callback) {
-  // 每个条目是一个对象和它的“路径”（例如 'a.b.c'）
   const stack = [{node: rootNode, path: ''}];
 
   while (stack.length) {
     const { node, path} = stack.pop();
 
-    // 如果值是对象或数组，就继续遍历
     if (node && typeof node === 'object') {
       if (Array.isArray(node)) {
         for (const key in node) {
@@ -52,7 +50,6 @@ function walkRouter(rootNode, callback) {
       }
     }
 
-    // 调用回调函数
     callback(path, node);
   }
 }
