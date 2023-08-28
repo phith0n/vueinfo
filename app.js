@@ -43,7 +43,7 @@ function walkRouter(rootNode, callback) {
     if (node && typeof node === 'object') {
       if (Array.isArray(node)) {
         for (const key in node) {
-          stack.push({node: node[key], path: (path ? path + '/' : '') + node[key].path})
+          stack.push({node: node[key], path: mergePath(path, node[key].path)})
         }
       } else if (node.hasOwnProperty("children")) {
         stack.push({node: node.children, path: path});
@@ -52,6 +52,14 @@ function walkRouter(rootNode, callback) {
 
     callback(path, node);
   }
+}
+
+function mergePath(parent, path) {
+  if (path.indexOf(parent) === 0) {
+    return path
+  }
+
+  return (parent ? parent + '/' : '') + path
 }
 
 function main() {
