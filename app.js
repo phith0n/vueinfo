@@ -22,12 +22,17 @@ function findVueRouter(vueRoot) {
   try {
     if (vueRoot.__vue_app__) {
       router = vueRoot.__vue_app__.config.globalProperties.$router.options.routes
-    } else {
-      if (vueRoot.__vue__.$root.$options.router.options.routes) {
-        router = vueRoot.__vue__.$root.$options.router.options.routes
-      } else if (vueRoot.__vue__._router.options.routes) {
-        router = vueRoot.__vue__._router.options.routes
-      }
+      console.log("find router in Vue object", vueRoot.__vue_app__)
+    } else if (vueRoot.__vue__) {
+      router = vueRoot.__vue__.$root.$options.router.options.routes
+      console.log("find router in Vue object", vueRoot.__vue__)
+    }
+  } catch (e) {}
+
+  try {
+    if (vueRoot.__vue__ && !router) {
+      router = vueRoot.__vue__._router.options.routes
+      console.log("find router in Vue object", vueRoot.__vue__)
     }
   } catch (e) {}
 
